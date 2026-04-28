@@ -98,17 +98,27 @@ function exchangeAuth(req, res, next) {
    🧠 DATA (ALL SYSTEMS)
 ========================================================= */
 
-// Accounts DB (API 1)
+// ---------------- Mock Database ---------------- //
 const accountsDB = {
     "99887766": {
-        balance: 12500,
+        balance: 12500.0,
         currency: "ETB",
         transactions: [
             { id: 1, amount: -500, type: "debit", date: "2026-03-20" },
-            { id: 2, amount: 2000, type: "credit", date: "2026-03-21" }
+            { id: 2, amount: 2000, type: "credit", date: "2026-03-21" },
+            { id: 3, amount: -300, type: "debit", date: "2026-03-22" },
         ]
-    }
+    },
+    "88991122": {
+        balance: 8500.0,
+        currency: "ETB",
+        transactions: [
+            { id: 1, amount: -1000, type: "debit", date: "2026-03-20" },
+            { id: 2, amount: 500, type: "credit", date: "2026-03-21" },
+        ]
+    },
 };
+
 
 // Bank Accounts (API 2)
 const accounts = {
@@ -171,17 +181,20 @@ function getRate(from, to) {
 /* =========================================================
    🏦 ACCOUNT API (SYSTEM 1)
 ========================================================= */
+// 1️⃣ Account balance
+app.get('/api/accounts/:account_id/balance', bearerAuth, (req, res) => {
+    const accountId = req.params.account_id;
+    const currency = req.query.currency || 'ETB';
 
-app.get("/api/accounts/:account_id/balance", bearerAuth, (req, res) => {
-    const acc = accountsDB[req.params.account_id];
-    if (!acc) return res.status(404).json({ success: false });
+    const account = accountsDB[accountId];
+    if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
 
     res.json({
         success: true,
         data: {
-            account_id: req.params.account_id,
-            balance: acc.balance,
-            currency: req.query.currency || "ETB",
+            account_id: accountId,
+            currency,
+            available_balance: account.balance,
             last_updated: new Date().toISOString()
         }
     });
